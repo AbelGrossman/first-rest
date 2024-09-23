@@ -1,4 +1,4 @@
-# first-rest
+    # first-rest
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
