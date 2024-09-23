@@ -7,10 +7,9 @@ import fr.pantheonsorbonne.miage.service.InsufficientQuotaException;
 import fr.pantheonsorbonne.miage.service.NoSuchQuotaException;
 import fr.pantheonsorbonne.miage.service.QuotaService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
@@ -25,6 +24,7 @@ public class QuotaResource {
 
     @GET
     @Path("/{concertId}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Quota getQuotaForVendorAndConcert(
             @PathParam("vendorId") int vendorId,
             @PathParam("concertId") int concertId) {
@@ -33,6 +33,7 @@ public class QuotaResource {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public List<Quota> getQuotaForVendor(
             @PathParam("vendorId") int vendorID) {
         return dao.getQuotas(vendorID);
@@ -40,13 +41,22 @@ public class QuotaResource {
 
     @PUT
     @Path("/{concertId}")
-    public void bookConcert(
+    public Response bookConcert(
             @PathParam("vendorId") int vendorId,
             @PathParam("concertId") int concertId,
-            BookingRequest bookingRequest) throws NoSuchQuotaException, InsufficientQuotaException {
-        quotaService.bookTickets(vendorId,
-                concertId,
-                bookingRequest.seated(),
-                bookingRequest.standing());
+            BookingRequest bookingRequest)  {
+        try {
+            quotaService.bookTickets(vendorId,
+                    concertId,
+                    bookingRequest.seated(),
+                    bookingRequest.standing());
+            return Response.status(404).entity("toto").build();
+
+
+        } catch (InsufficientQuotaException e) {
+            throw new WebApplicationException(Response.status(400).entity("not enough quota").build());
+        } catch (NoSuchQuotaException e) {
+            throw new WebApplicationException("NoSuch Quota ",404);
+        }
     }
 }
